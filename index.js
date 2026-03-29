@@ -334,8 +334,8 @@ app.post("/upload", express.json({ limit: "10mb" }), (req, res) => {
 
 app.get("/conformation",(req,res)=>{
   const dateInfo={
-    weekday:"When you bought",
-    monthDay:"March 23",
+    weekday:"date you bought",
+    monthDay:"March 28",
     year:2026
   }
   res.render("conformation.ejs", 
