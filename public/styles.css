@@ -263,7 +263,7 @@ body {
 .bottom-nav {
   display: flex;
   justify-content: space-around;
-  align-items: center;
+  align-items: flex-end;
   padding: 8px 0 10px;
   border-top: 1px solid #d3e6e8;
   background-color: #ffffff;
@@ -275,6 +275,10 @@ body {
   cursor: pointer;
   color: #0b6168;
   font-size: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
 }
 
 .bottom-nav a.nav-button {
@@ -282,12 +286,29 @@ body {
 }
 
 .nav-button-primary {
-  width: 56px;
-  height: 56px;
+  color: #0b6168;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-button-labeled {
+  min-width: 52px;
+}
+
+.nav-label {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.nav-primary-icon {
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background-color: #0b949e;
   color: #ffffff;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
@@ -547,6 +568,16 @@ body {
   gap: 8px;
 }
 
+.saved-shortcut {
+  text-decoration: none;
+  color: #0b6168;
+  border: 1px solid #0b6168;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .recipes-list {
   display: flex;
   flex-direction: column;
@@ -584,6 +615,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  gap: 8px;
 }
 
 .recipe-title {
@@ -613,6 +645,21 @@ body {
   margin-top: 16px;
   font-size: 14px;
   color: #3c5558;
+}
+
+.save-recipe-form {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.save-recipe-btn {
+  border: 1px solid #0b6168;
+  background-color: #ffffff;
+  color: #0b6168;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
 }
 
 /* Notification Popup Styles */
@@ -690,6 +737,11 @@ body {
   transition: color 0.2s ease;
 }
 
+.notification-close-text {
+  font-size: 12px;
+  margin-left: 4px;
+}
+
 .notification-close-btn:hover {
   color: #123b40;
 }
@@ -701,6 +753,12 @@ body {
   margin-bottom: 16px;
   padding-bottom: 8px;
   border-bottom: 1px solid #d3e6e8;
+}
+
+.notification-helper-text {
+  margin: 0 0 10px;
+  font-size: 11px;
+  color: #5f7a7d;
 }
 
 .notification-list {
@@ -761,6 +819,12 @@ body {
   text-align: center;
   color: #7b9497;
   font-size: 14px;
+}
+
+.saved-recipes-hint {
+  margin: 0 0 8px 16px;
+  font-size: 12px;
+  color: #5f7a7d;
 }
 
 /* Profile Page Styles */

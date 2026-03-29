@@ -15,6 +15,7 @@ const __filename = fileURLToPath(import.meta.url);
 const app = express();
 const port = 3000;
 const __dirname = path.dirname(__filename);
+const savedRecipesStore = [];
 
 const db = new pg.Client({
   user: "postgres",
@@ -267,6 +268,7 @@ app.post("/ingredient/:id/recipes", async (req, res) => {
     res.render("suggested_recipes.ejs", {
       ingredient,
       recipes: simplifiedRecipes,
+      savedRecipeIds: savedRecipesStore.map((recipe) => recipe.id),
       expiringIngredients: []
     });
 
@@ -274,6 +276,27 @@ app.post("/ingredient/:id/recipes", async (req, res) => {
     console.error("Error fetching suggested recipes", err);
     res.status(500).send("Error loading recipes");
   }
+});
+
+app.post("/recipes/save", (req, res) => {
+  const { id, title, image } = req.body;
+  const recipeId = Number(id);
+
+  if (!recipeId || !title) {
+    return res.redirect("/saved-recipes");
+  }
+
+  const alreadySaved = savedRecipesStore.some((recipe) => recipe.id === recipeId);
+
+  if (!alreadySaved) {
+    savedRecipesStore.unshift({
+      id: recipeId,
+      title,
+      image: image || "",
+    });
+  }
+
+  res.redirect("/saved-recipes");
 });
 
 app.post("/add", async (req, res) => {
@@ -359,6 +382,20 @@ app.get("/search",(req,res)=>{
 
 app.get("/saved-recipes", async (req, res) => {
   try {
+    if (savedRecipesStore.length > 0) {
+      return res.render("saved_recipes.ejs", {
+        savedRecipes: savedRecipesStore,
+        expiringIngredients: [],
+      });
+    }
+
+    if (!process.env.SPOONACULAR_API_KEY) {
+      return res.render("saved_recipes.ejs", {
+        savedRecipes: [],
+        expiringIngredients: [],
+      });
+    }
+
     const response = await axios.get("https://api.spoonacular.com/recipes/random", {
       params: {
         apiKey: process.env.SPOONACULAR_API_KEY,
@@ -368,7 +405,8 @@ app.get("/saved-recipes", async (req, res) => {
     });
 
     const recipes = response.data.recipes || [];
-    const savedRecipes = recipes.map((r) => ({
+    const savedRecipes = recipes.map((r, index) => ({
+      id: Number(r.id) || index + 1,
       title: r.title,
       image: r.image,
     }));
