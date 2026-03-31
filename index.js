@@ -303,12 +303,10 @@ app.post("/add", async (req, res) => {
   const { ingredientName, quantity } = req.body;
 
   try {
-    // ホーム画面からの遷移（まだフォーム未入力）の場合は入力画面を表示
     if (!ingredientName) {
       return res.render("add_ingredient.ejs");
     }
 
-    // フォーム送信時はDBに追加してトップへ戻る
     await db.query(
       "INSERT INTO added_ingredients (name, quantity, added_date) VALUES ($1, $2, NOW())",
       [ingredientName, quantity || null]
@@ -350,7 +348,6 @@ app.post("/upload", express.json({ limit: "10mb" }), (req, res) => {
     }
     console.log("Image saved:", filePath);
 
-    // 画像保存完了後にリダイレクト
     res.redirect("/conformation");
   });
 });
@@ -387,34 +384,12 @@ app.get("/saved-recipes", async (req, res) => {
         savedRecipes: savedRecipesStore,
         expiringIngredients: [],
       });
-    }
-
-    if (!process.env.SPOONACULAR_API_KEY) {
+    }else{
       return res.render("saved_recipes.ejs", {
         savedRecipes: [],
         expiringIngredients: [],
       });
     }
-
-    const response = await axios.get("https://api.spoonacular.com/recipes/random", {
-      params: {
-        apiKey: process.env.SPOONACULAR_API_KEY,
-        includeNutrition: false,
-        number: 5,
-      },
-    });
-
-    const recipes = response.data.recipes || [];
-    const savedRecipes = recipes.map((r, index) => ({
-      id: Number(r.id) || index + 1,
-      title: r.title,
-      image: r.image,
-    }));
-
-    res.render("saved_recipes.ejs", {
-      savedRecipes,
-      expiringIngredients: [],
-    });
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Error fetching recipes");
