@@ -402,6 +402,75 @@ app.get("/profile", (req, res) => {
   });
 });
 
+// ストレージの食材からレシピを提案
+app.post("/storage/suggest-recipes", async (req, res) => {
+  try {
+    // ストレージから全食材を取得（重複なし）
+    const result = await db.query(
+      "SELECT DISTINCT LOWER(name) as name FROM added_ingredients"
+    );
+
+    if (result.rows.length === 0) {
+      return res.render("storage_suggested_recipes.ejs", {
+        recipes: [],
+        storageIngredientsCount: 0,
+        savedRecipeIds: savedRecipesStore.map((recipe) => recipe.id),
+        expiringIngredients: []
+      });
+    }
+
+    // 食材名を抽出
+    const ingredientNames = result.rows.map(row => row.name);
+    const apiKey = process.env.SPOONACULAR_API_KEY;
+
+    if (!apiKey) {
+      return res.status(500).send("API key not configured.");
+    }
+
+    // Spoonacular APIで全食材に対するレシピを取得
+    const response = await axios.get(
+      "https://api.spoonacular.com/recipes/findByIngredients",
+      {
+        params: {
+          apiKey: apiKey,
+          ingredients: ingredientNames.join(","),
+          number: 50,
+          ranking: 2,
+          ignorePantry: false,
+        },
+      }
+    );
+
+    let recipes = Array.isArray(response.data) ? response.data : [];
+
+    // usedIngredientCount（ストレージから使った食材数）の降順でソート
+    // すべての食材を使ったレシピが最上位になる
+    recipes.sort((a, b) => {
+      const usedA = a.usedIngredientCount || 0;
+      const usedB = b.usedIngredientCount || 0;
+      return usedB - usedA; // 降順
+    });
+
+    // 表示用データを整形
+    const simplifiedRecipes = recipes.map((r) => ({
+      id: r.id,
+      title: r.title,
+      image: r.image,
+      usedIngredientsCount: r.usedIngredientCount || 0,
+    }));
+
+    res.render("storage_suggested_recipes.ejs", {
+      recipes: simplifiedRecipes,
+      storageIngredientsCount: ingredientNames.length,
+      savedRecipeIds: savedRecipesStore.map((recipe) => recipe.id),
+      expiringIngredients: []
+    });
+  } catch (err) {
+    console.error("Error fetching storage recipes", err);
+    res.status(500).send("Error loading recipes");
+  }
+});
+
 app.listen(port, "0.0.0.0", () => {
   console.log(`Server is running on http://localhost:${port}`);
 });

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Suggested Recipes - Storage</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Nunito:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="app-frame">
+      <%- include("header.ejs") %>
+
+      <main class="content suggested-content">
+        <nav class="breadcrumbs">
+          <span>Storage &gt; Suggested Recipes</span>
+        </nav>
+
+        <section class="suggested-header-row">
+          <div class="suggested-ingredient">
+            <h1 class="suggested-ingredient-name">Recipe Suggestions</h1>
+            <p style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">
+              From <%= storageIngredientsCount %> ingredients in your storage
+            </p>
+          </div>
+          <div class="suggested-actions">
+            <a href="/" class="saved-shortcut">Back</a>
+            <button class="icon-button" type="button" aria-label="filter">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
+                <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .39.812L10 7.5V13a1 1 0 0 1-1.447.894l-2-1A1 1 0 0 1 6 12V7.5L1.61 1.812A.5.5 0 0 1 1.5 1.5"/>
+              </svg>
+            </button>
+            <button class="icon-button" type="button" id="sortRecipesBtn" aria-label="sort">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-down-up" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M2 10a.5.5 0 0 1 .5.5v3.293l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 .708-.708L1.5 13.793V10.5A.5.5 0 0 1 2 10m12-4a.5.5 0 0 1-.5-.5V2.207l-1.146 1.147a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 1 1-.708.708L14.5 2.207V5.5A.5.5 0 0 1 14 6"/>
+              </svg>
+            </button>
+          </div>
+        </section>
+
+        <section class="recipes-list">
+          <% if (!recipes || recipes.length === 0) { %>
+          <p class="recipes-empty">No recipes found for your storage ingredients.</p>
+          <% } else { %>
+          <% recipes.forEach(function (recipe) { %>
+          <article class="recipe-card" data-count="<%= recipe.usedIngredientsCount %>">
+            <div class="recipe-thumb-wrap">
+              <% if (recipe.image) { %>
+              <img src="<%= recipe.image %>" alt="<%= recipe.title %>" class="recipe-thumb" />
+              <% } else { %>
+              <div class="recipe-thumb placeholder"></div>
+              <% } %>
+            </div>
+            <div class="recipe-main">
+              <h2 class="recipe-title"><%= recipe.title %></h2>
+              <div class="recipe-meta">
+                <span class="recipe-ingredients-count"><%= recipe.usedIngredientsCount %></span>
+                <span class="recipe-ingredients-label">USED INGREDIENTS</span>
+              </div>
+              <form class="save-recipe-form" action="/recipes/save" method="post">
+                <input type="hidden" name="id" value="<%= recipe.id %>" />
+                <input type="hidden" name="title" value="<%= recipe.title %>" />
+                <input type="hidden" name="image" value="<%= recipe.image || '' %>" />
+                <button class="save-recipe-btn" type="submit">
+                  <%= savedRecipeIds && savedRecipeIds.includes(recipe.id) ? "Saved" : "+ Save" %>
+                </button>
+              </form>
+            </div>
+          </article>
+          <% }); %>
+          <% } %>
+        </section>
+      </main>
+
+      <%- include("bottom_icons.ejs") %>
+    </div>
+    <script>
+      (function () {
+        const sortBtn = document.getElementById("sortRecipesBtn");
+        const list = document.querySelector(".recipes-list");
+        if (!sortBtn || !list) return;
+
+        let ascending = false; // Start with descending (most used first)
+        
+        sortBtn.addEventListener("click", function () {
+          const cards = Array.from(list.querySelectorAll(".recipe-card"));
+          cards.sort(function (a, b) {
+            const first = Number(a.dataset.count || 0);
+            const second = Number(b.dataset.count || 0);
+            return ascending ? first - second : second - first;
+          });
+
+          cards.forEach(function (card) {
+            list.appendChild(card);
+          });
+
+          ascending = !ascending;
+        });
+      })();
+    </script>
+  </body>
+</html>
