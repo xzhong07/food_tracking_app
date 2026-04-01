@@ -9,7 +9,6 @@ import fs from "fs";
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// 現在のファイル名
 const __filename = fileURLToPath(import.meta.url);
 
 const app = express();
@@ -30,7 +29,7 @@ db.connect();
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// 食材一覧取得
+
 async function getIngredients() {
   const result = await db.query(
     "SELECT * FROM added_ingredients"
@@ -110,7 +109,6 @@ app.get("/", async (req, res) => {
   }
 });
 
-// 食材詳細ページ
 app.get("/ingredient/:id", async (req, res) => {
   const id = req.params.id;
 
@@ -168,14 +166,11 @@ app.get("/ingredient/:id", async (req, res) => {
   }
 });
 
-// レシピ提案ページ
 app.post("/ingredient/:id/recipes", async (req, res) => {
   const id = req.params.id;
 
   try {
-    // -----------------------------------
-    // ① 選択された材料を取得
-    // -----------------------------------
+
     const addedResult = await db.query(
       "SELECT id, name, quantity, added_date FROM added_ingredients WHERE id = $1",
       [id]
@@ -187,9 +182,6 @@ app.post("/ingredient/:id/recipes", async (req, res) => {
 
     const added = addedResult.rows[0];
 
-    // -----------------------------------
-    // ② icon取得
-    // -----------------------------------
     const listResult = await db.query(
       "SELECT icon FROM ingredients_list WHERE LOWER(name) LIKE '%'||LOWER($1)||'%'",
       [added.name]
@@ -207,9 +199,6 @@ app.post("/ingredient/:id/recipes", async (req, res) => {
       return res.status(500).send("API key not configured.");
     }
 
-    // -----------------------------------
-    // ③ 選択食材を必ず含める
-    // -----------------------------------
     const response = await axios.get(
       "https://api.spoonacular.com/recipes/findByIngredients",
       {
@@ -217,7 +206,7 @@ app.post("/ingredient/:id/recipes", async (req, res) => {
           apiKey: apiKey,
           ingredients: added.name,
           number: 20,
-          ranking: 2, // ← 不足食材最小化優先
+          ranking: 2, 
           ignorePantry: false,
         },
       }
@@ -225,32 +214,21 @@ app.post("/ingredient/:id/recipes", async (req, res) => {
 
     let recipes = Array.isArray(response.data) ? response.data : [];
 
-    // -----------------------------------
-    // ④ 「選択食材を含む」ものだけに限定
-    // -----------------------------------
     recipes = recipes.filter(
       (r) => (r.usedIngredientCount || 0) > 0
     );
 
-    // -----------------------------------
-    // ⑤ 追加購入数でソート
-    //    (= missedIngredientCount 昇順)
-    // -----------------------------------
     recipes.sort((a, b) => {
       const missedA = a.missedIngredientCount || 0;
       const missedB = b.missedIngredientCount || 0;
 
       if (missedA !== missedB) {
-        return missedA - missedB; // 少ない順
+        return missedA - missedB; 
       }
 
-      // 同じ場合は使用食材が多い順
       return (b.usedIngredientCount || 0) - (a.usedIngredientCount || 0);
     });
 
-    // -----------------------------------
-    // ⑥ 表示用データ作成
-    // -----------------------------------
     const simplifiedRecipes = recipes.map((r) => ({
       id: r.id,
       title: r.title,
@@ -402,10 +380,9 @@ app.get("/profile", (req, res) => {
   });
 });
 
-// ストレージの食材からレシピを提案
+
 app.post("/storage/suggest-recipes", async (req, res) => {
   try {
-    // ストレージから全食材を取得（重複なし）
     const result = await db.query(
       "SELECT DISTINCT LOWER(name) as name FROM added_ingredients"
     );
@@ -419,7 +396,6 @@ app.post("/storage/suggest-recipes", async (req, res) => {
       });
     }
 
-    // 食材名を抽出
     const ingredientNames = result.rows.map(row => row.name);
     const apiKey = process.env.SPOONACULAR_API_KEY;
 
@@ -427,7 +403,6 @@ app.post("/storage/suggest-recipes", async (req, res) => {
       return res.status(500).send("API key not configured.");
     }
 
-    // Spoonacular APIで全食材に対するレシピを取得
     const response = await axios.get(
       "https://api.spoonacular.com/recipes/findByIngredients",
       {
@@ -443,15 +418,12 @@ app.post("/storage/suggest-recipes", async (req, res) => {
 
     let recipes = Array.isArray(response.data) ? response.data : [];
 
-    // usedIngredientCount（ストレージから使った食材数）の降順でソート
-    // すべての食材を使ったレシピが最上位になる
     recipes.sort((a, b) => {
       const usedA = a.usedIngredientCount || 0;
       const usedB = b.usedIngredientCount || 0;
-      return usedB - usedA; // 降順
+      return usedB - usedA;
     });
 
-    // 表示用データを整形
     const simplifiedRecipes = recipes.map((r) => ({
       id: r.id,
       title: r.title,
@@ -474,5 +446,3 @@ app.post("/storage/suggest-recipes", async (req, res) => {
 app.listen(port, "0.0.0.0", () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
-
-//Edamam
