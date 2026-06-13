@@ -1,3 +1,39 @@
+# Recipe Suggestion App
+
+持っている食材と賞味期限を考慮してレシピの提案を行うWebアプリケーションです。  
+
+## 概要
+
+このアプリケーションは、ユーザーが入力した食材情報と賞味期限をもとに、適切なレシピを提案することを目的としています。  
+外部APIとデータベースを組み合わせたバックエンド処理の設計・実装を行いました。
+
+レシピ情報の取得には **Spoonacular API** を使用しています。
+
+## 使用技術
+
+### フロントエンド
+- EJS（テンプレートエンジン）
+- HTML / CSS
+
+### バックエンド
+- Node.js
+- Express
+
+### データベース
+- PostgreSQL
+- pgAdmin
+
+### 外部API
+- Spoonacular API
+
+### 使用ライブラリ
+```javascript
+import express from "express";
+import bodyParser from "body-parser";
+import pg from "pg";
+import axios from "axios";
+など
+
 # How to Launch the Application
 
 ## 1. Clone the Repository
