@@ -33,10 +33,12 @@ import bodyParser from "body-parser";
 import pg from "pg";
 import axios from "axios";
 など
+'''
+
 
 # How to Launch the Application
 
-## 1. Clone the Repository
+## 2. Set Up the Database
 Run the following command:
 
 ```bash
